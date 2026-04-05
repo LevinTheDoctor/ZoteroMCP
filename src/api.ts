@@ -2,7 +2,7 @@ import { API_CONFIG } from "./config.js";
 import { get } from "./requestbuilder.js";
 
 // base url aus bas url und user prefix
-const base = API_CONFIG.baseUrl + "/" + API_CONFIG.userPrefix + "/";
+const base = API_CONFIG.baseUrl + "/" + API_CONFIG.userPrefix;
 
 // Endpoints zentral definieren
 export const Endpoints = {
