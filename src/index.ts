@@ -1,4 +1,7 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import {
+  McpServer,
+  ResourceTemplate,
+} from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import * as api from "./api.js";
@@ -9,7 +12,44 @@ const server = new McpServer({
   description: "MCP Server fuer Zotero",
 });
 
-// Tools
+// Ressourcen definieren
+server.resource(
+  "collection",
+  new ResourceTemplate("zotero://collection/{key}", {
+    list: async () => {
+      const collections = await api.getCollections();
+      return {
+        resources: collections.map((col: any) => ({
+          uri: `zotero://collection/${col.key}`,
+          name: col.data.name,
+          description: `${col.meta.numItems} Items, ${col.meta.numCollections} Subcollections`,
+        })),
+      };
+    },
+  }),
+  async (uri, { key }) => {
+    // Muss ein String sein, da er in der URI definiert ist
+    if (typeof key !== "string") {
+      throw new Error("Key muss ein String sein");
+    }
+    // Hier rufen wir die API auf, um die Collection und ihre Items zu bekommen
+    const [collection, items] = await Promise.all([
+      api.getCollectionByKey(key),
+      api.getItemsByCollectionKey(key),
+    ]);
+
+    return {
+      contents: [
+        {
+          uri: uri.href,
+          text: JSON.stringify({ collection, items }, null, 2),
+        },
+      ],
+    };
+  },
+);
+
+// Tools die Wie ein API Endpunkt funktionieren, aber mit Validierung und Dokumentation
 server.tool(
   "getCollections",
   "Ruft die Collections des Nutzers ab",
