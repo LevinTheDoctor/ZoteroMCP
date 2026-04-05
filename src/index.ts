@@ -63,7 +63,7 @@ server.tool(
   "Ruft die neuesten Items einer spezifischen Collection ab",
   { key: z.string().describe("Der Zotero Collection Key") },
   async ({ key }) => {
-    const data = await api.getItemsByCollectionKey(key);
+    const data = await api.getTopItemsByCollectionKey(key);
     return {
       content: [{ type: "text", text: JSON.stringify(data) }],
     };
