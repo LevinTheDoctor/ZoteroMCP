@@ -1,127 +1,127 @@
-# Zotero MCP – Einrichtung
+# Zotero MCP – Setup
 
-> Verbinde Zotero mit Claude über einen lokalen MCP-Server und greife direkt auf deine Literaturverwaltung zu.
-
----
-
-## Voraussetzungen
-
-- [Zotero](https://www.zotero.org/) ist installiert und geöffnet
-- [Node.js](https://nodejs.org/) ist installiert (`node --version` zum Prüfen)
-- Das Projekt `ZoteroMCP` liegt lokal vor und wurde geklont
+> Connect Zotero to Claude via a local MCP server and access your reference manager directly.
 
 ---
 
-## Schritt 1 – Lokale API in Zotero aktivieren
+## Prerequisites
 
-1. Öffne **Zotero**
-2. Gehe zu den Einstellungen über das Menü oder den Shortcut:
+- [Zotero](https://www.zotero.org/) is installed and running
+- [Node.js](https://nodejs.org/) is installed (verify with `node --version`)
+- The `ZoteroMCP` project is cloned and available locally
+
+---
+
+## Step 1 – Enable the Local API in Zotero
+
+1. Open **Zotero**
+2. Open Preferences via the menu or the shortcut:
 
    ```
    Cmd + ,
    ```
 
-3. Navigiere zu **Erweitert → Verschiedenes**
-4. Aktiviere die Option:
+3. Navigate to **Advanced → Miscellaneous**
+4. Enable the following option:
 
-   > ✅ **Anderen Anwendungen auf diesem Computer erlauben, mit Zotero zu kommunizieren**
+   > ✅ **Allow other applications on this computer to communicate with Zotero**
 
-   Danach erscheint die lokale API-URL, zum Beispiel:
+   The local API URL will then be displayed, for example:
 
    ```
    http://localhost:23119/api/
    ```
 
-   > **Tipp:** Notiere dir den Port – du brauchst ihn im nächsten Schritt.
+   > **Tip:** Note down the port number — you'll need it in the next step.
 
 ---
 
-## Schritt 2 – API im Projekt anbinden
+## Step 2 – Connect the API to the Project
 
-Erstelle die Datei `src/config.ts` im Projektverzeichnis und ersetze die Platzhalter durch deine tatsächliche URL aus Zotero:
+Create the file `src/config.ts` in the project directory and replace the placeholders with your actual URL from Zotero:
 
 ```typescript
 // src/config.ts
 
 export const API_CONFIG = {
-  baseUrl: "http://localhost:23119/api", // Port aus den Zotero-Einstellungen übernehmen
-  userPrefix: "users/0",                 // Lokaler Nutzer (Standard: 0)
-  timeout: 500,                          // Timeout in Millisekunden
+  baseUrl: "http://localhost:23119/api", // Use the port from your Zotero settings
+  userPrefix: "users/0",                 // Local user (default: 0)
+  timeout: 500,                          // Timeout in milliseconds
 };
 ```
 
 ---
 
-## Schritt 3 – Projekt bauen
+## Step 3 – Build the Project
 
-Wechsle ins Projektverzeichnis und führe den Build-Befehl aus:
+Navigate to the project directory and run the build command:
 
 ```bash
-# Ins Projektverzeichnis wechseln
-cd /pfad/zum/Projekt/ZoteroMCP
+# Navigate to the project directory
+cd /path/to/project/ZoteroMCP
 
-# Abhängigkeiten installieren (nur beim ersten Mal nötig)
+# Install dependencies (only required once)
 npm install
 
-# Projekt bauen
+# Build the project
 npm run build
 ```
 
-> **Alternativ:** In **Visual Studio Code** kannst du den Build direkt über den integrierten Terminal oder eine `tasks.json`-Konfiguration ausführen.
+> **Alternative:** In **Visual Studio Code** you can run the build directly via the integrated terminal or a `tasks.json` configuration.
 
-Nach dem Build liegt die kompilierte Datei unter `dist/index.js`.
+After the build, the compiled file will be available at `dist/index.js`.
 
 ---
 
-## Schritt 4 – MCP in Claude Desktop einbinden
+## Step 4 – Register the MCP Server in Claude Desktop
 
-Damit Claude den MCP-Server erkennt, muss die Konfigurationsdatei von Claude Desktop angepasst werden.
+For Claude to recognize the MCP server, the Claude Desktop configuration file needs to be updated.
 
-**Pfad zur Konfigurationsdatei:**
+**Path to the configuration file:**
 
 ```
-/Users/DEIN-NUTZER/Library/Application Support/Claude/claude_desktop_config.json
+/Users/YOUR-USERNAME/Library/Application Support/Claude/claude_desktop_config.json
 ```
 
-Füge den folgenden Block in das `mcpServers`-Objekt ein:
+Add the following block to the `mcpServers` object:
 
 ```json
 {
   "mcpServers": {
     "zotero": {
       "command": "node",
-      "args": ["/absoluter/pfad/zum/Projekt/ZoteroMCP/dist/index.js"]
+      "args": ["/absolute/path/to/project/ZoteroMCP/dist/index.js"]
     }
   }
 }
 ```
 
-> **Wichtig:** Verwende den **absoluten Pfad** zur `dist/index.js` – relative Pfade funktionieren hier nicht zuverlässig.
+> **Important:** Always use the **absolute path** to `dist/index.js` — relative paths are not reliably resolved here.
 
-Starte **Claude Desktop** nach der Änderung neu, damit der MCP-Server erkannt wird.
+Restart **Claude Desktop** after saving the change for the MCP server to be picked up.
 
 ---
 
 ## Troubleshooting
 
-| Problem | Mögliche Ursache | Lösung |
+| Problem | Likely Cause | Solution |
 |---|---|---|
-| API nicht erreichbar | Zotero ist nicht geöffnet | Zotero starten und API-Option prüfen |
-| Falscher Port | Port hat sich geändert | Port in Zotero-Einstellungen prüfen und `config.ts` aktualisieren |
-| MCP wird nicht erkannt | Falscher Pfad in JSON | Absoluten Pfad zur `dist/index.js` verwenden |
-| `dist/index.js` fehlt | Build nicht ausgeführt | `npm run build` erneut ausführen |
+| API not reachable | Zotero is not running | Start Zotero and verify the API option is enabled |
+| Wrong port | Port has changed | Check the port in Zotero settings and update `config.ts` |
+| MCP not recognized | Incorrect path in JSON | Use the absolute path to `dist/index.js` |
+| `dist/index.js` missing | Build was not run | Run `npm run build` again |
 
 ---
 
-## Projektstruktur (nach dem Build)
+## Project Structure (after build)
 
 ```
 ZoteroMCP/
 ├── src/
-│   ├── config.ts        # API-Konfiguration
-│   └── index.ts         # Einstiegspunkt des MCP-Servers
+│   ├── config.ts        # API configuration
+│   └── index.ts         # MCP server entry point
 ├── dist/
-│   └── index.js         # Kompilierte Ausgabe (wird von Claude genutzt)
+│   └── index.js         # Compiled output (used by Claude)
 ├── package.json
 └── tsconfig.json
 ```
